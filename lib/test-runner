@@ -1,0 +1,105 @@
+#!/usr/bin/env node
+const fs = require('fs').promises;
+const path = require('path');
+
+const RC_NAME = './.e2erc.js';
+
+const cwd = process.cwd();
+
+const [, , ...params] = process.argv
+const commonParams = []
+const jestParams = []
+params.forEach(i => i.startsWith('j-') ? jestParams.push(i.substring(2)) : commonParams.push(i))
+
+let cfg;
+try {
+  cfg = require(path.resolve(cwd, RC_NAME));
+} catch (e) {
+  console.error(e);
+  process.exit(1);
+}
+
+const runCommand = (cmd, args, needReturn = false) => {
+  const cp = require('child_process');
+  return new Promise((resolve, reject) => {
+    if (!needReturn) {
+      let executedCommand = cp.spawn(cmd, args, {
+        shell: true,
+        stdio: 'inherit'
+      });
+      executedCommand.on('error', reject);
+      executedCommand.on('exit', code => code === 0 ? resolve(code) : reject(code))
+    } else {
+      cp.exec(cmd, args, (err, stdo, sde) => {
+        if (err && err.code !== 0) reject(err.code)
+        else resolve({ code: 0, data: stdo })
+      })
+    }
+  })
+};
+
+const line = '------------------------------------------------------';
+
+const start = new Date();
+
+
+let mp = cfg.sequence;
+
+const reportsDir = cfg.reportsDir;
+
+const prefix = cfg.testSuitsDir;
+
+const htmlStart = "<\!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Title</title></head><body>";
+const htmlEnd = "</body></html>";
+;(async () => {
+
+  try {
+    let reportsDirStat = await fs.stat(path.join(cwd, reportsDir))
+    if (!reportsDirStat.isDirectory()) {
+      await runCommand(`mkdir ${reportsDir}`)
+    }
+  } catch (e) {
+    console.warn(`${reportsDir} is not a directory, I will create it then....`)
+    await runCommand(`mkdir ${reportsDir}`)
+  }
+
+
+  let i = 0;
+  let tmpReportMap = [];
+  while (i < mp.length) {
+    let f = `${prefix}${mp[i]}.spec.ts`;
+    try {
+      let stat = await fs.stat(path.join(cwd, f));
+      if (!stat.isFile()) {
+        console.error(`${f} 不是个文件`)
+        return process.exit(9)
+      }
+    } catch (e) {
+      console.error(`${f} 不是个文件`)
+      return process.exit(8)
+    }
+    await runCommand('npx', ['jest', f, 'detectOpenHandles','forceExit', ...jestParams]);
+    let reportFile = `${reportsDir}/${mp[i]}_jest_html_reporters.html`;
+    tmpReportMap.push(reportFile);
+    await runCommand(`mv jest_html_reporters.html ${reportFile}`);
+    i++
+  }
+  let contents = tmpReportMap.map((f, i) => `<div><a href="./${mp[i]}_jest_html_reporters.html">${f}</a></div>`);
+  await runCommand(`echo "${htmlStart + contents.join('') + htmlEnd}" > ${reportsDir}/E2E-TEST-REPORT.html`);
+  await runCommand('rm -rf jest_html_reporters.html');
+  await runCommand(`rm -rf ${reportsDir}/jest-html-reporters-attach`);
+  await runCommand(`mv jest-html-reporters-attach ${reportsDir}`);
+  const end = new Date();
+  
+  let spending = Math.floor((end - start) / 1000);
+
+  if (cfg.record) {
+    await runCommand(`echo "${line}" >> e2e-record.txt`);
+    await runCommand(`echo "start: ${start.toString()}" >> e2e-record.txt`);
+    await runCommand(`echo "end: ${end.toString()}" >> e2e-record.txt`);
+    await runCommand(`echo "spending: ${spending}s" >> e2e-record.txt`);
+  }
+  console.log(line);
+  console.log(`spending:  ${spending}s`);
+  console.log(line);
+})();

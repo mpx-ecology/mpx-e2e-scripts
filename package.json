@@ -1,0 +1,23 @@
+{
+  "name": "@mpxjs/e2e-scripts",
+  "version": "0.0.8",
+  "description": "miniprogram-e2e-scripts",
+  "main": "index.js",
+  "bin": {
+    "e2e-runner": "lib/test-runner"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "e2e",
+    "scripts",
+    "mpx"
+  ],
+  "author": "mabin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mpx-ecology/mpx-e2e-scripts/issues"
+  },
+  "homepage": "https://github.com/mpx-ecology/mpx-e2e-scripts#readme"
+}
