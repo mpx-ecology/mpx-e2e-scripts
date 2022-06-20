@@ -80,7 +80,19 @@ const htmlEnd = "</body></html>";
       console.error(`${f} 不是个文件`)
       return process.exit(8)
     }
-    await runCommand('npx', ['jest', f, 'detectOpenHandles','forceExit', ...jestParams]);
+    try {
+      await runCommand("npx", [
+        "jest",
+        f,
+        "detectOpenHandles",
+        "forceExit",
+        ...jestParams,
+      ]);
+    } catch (error) {
+      console.log(line);
+      console.error(`jest ${f} error ${error}`);
+      console.log(line);
+    }
     // let reportFile = `${reportsDir}/${mp[i]}_jest_html_reporters.html`;
     // tmpReportMap.push(reportFile);
     // await runCommand(`mv jest_html_reporters.html ${reportFile}`);
