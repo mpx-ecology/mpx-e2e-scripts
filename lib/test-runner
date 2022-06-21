@@ -63,6 +63,21 @@ const htmlEnd = "</body></html>";
   //   await runCommand(`mkdir ${reportsDir}`)
   // }
 
+  if (cfg.plugins) {
+    if (Array.isArray(cfg.plugins)) {
+      cfg.plugins.forEach(item => {
+        if (item.isServer) {
+          if (commonParams.includes('report') || cfg.devServer) {
+            item.apply && item.apply(cfg.devServer)
+          }
+        } else {
+          item.apply && item.apply()
+        }
+      })
+    } else {
+      console.log('参数 plugins 必须是数组')
+    }
+  }
 
   let i = 0;
   let tmpReportMap = [];
@@ -104,7 +119,9 @@ const htmlEnd = "</body></html>";
   // await runCommand(`rm -rf ${reportsDir}/jest-html-reporters-attach`);
   // await runCommand(`mv jest-html-reporters-attach ${reportsDir}`);
   // const end = new Date();
-  
+  cfg.plugins.forEach(plugin => {
+    plugin.done && plugin.done()
+  })
   // let spending = Math.floor((end - start) / 1000);
 
   // if (cfg.record) {
