@@ -7,7 +7,8 @@
     "e2e-runner": "lib/test-runner"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "release": "sh ./release.sh"
   },
   "keywords": [
     "e2e",
