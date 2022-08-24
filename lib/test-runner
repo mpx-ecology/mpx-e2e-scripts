@@ -70,6 +70,9 @@ const htmlEnd = "</body></html>";
       cfg.plugins.forEach(item => {
         if (item.isServer) {
           if (commonParams.includes('--report') || cfg.devServer) {
+            if (isPreview) {
+              cfg.devServer = Object.assign({ preview: true }, cfg.devServer)
+            }
             item.apply && item.apply(cfg.devServer)
           }
         } else {
