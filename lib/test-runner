@@ -49,6 +49,8 @@ const reportsDir = cfg.reportsDir;
 
 const prefix = cfg.testSuitsDir;
 
+const isPreview = commonParams.includes('--preview')
+
 const htmlStart = "<\!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Title</title></head><body>";
 const htmlEnd = "</body></html>";
 ;(async () => {
@@ -67,7 +69,7 @@ const htmlEnd = "</body></html>";
     if (Array.isArray(cfg.plugins)) {
       cfg.plugins.forEach(item => {
         if (item.isServer) {
-          if (commonParams.includes('report') || cfg.devServer) {
+          if (commonParams.includes('--report') || cfg.devServer) {
             item.apply && item.apply(cfg.devServer)
           }
         } else {
@@ -82,7 +84,7 @@ const htmlEnd = "</body></html>";
   let i = 0;
   let tmpReportMap = [];
   let fileType = cfg.useTS ? 'ts' : 'js'
-  while (i < mp.length) {
+  while (i < mp.length && !isPreview) {
     // let f = `${prefix}${mp[i]}.spec.${fileType}`;
     let f = path.join(prefix, `${mp[i]}.spec.${fileType}`);
     try {
