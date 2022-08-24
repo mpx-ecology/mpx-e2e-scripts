@@ -2,7 +2,7 @@
 
 BRANCH=`git branch -a|grep '.*\*'|sed 's/[*[:space:]]*//g'` # 当前分支
 STATUS=`git status --porcelain` # working tree
-git checkout .
+#git checkout .
 if [ "$STATUS" ]; then
   echo "❗️请先清理 workingtree 后再进行发布！"
   echo ""
@@ -32,4 +32,4 @@ PACKAGE_VERSION=$(cat package.json \
   | awk -F: '{ print $2 }' \
   | sed 's/[",]//g')
 
-git push origin $BRANCH:$BRANCH
+#git push origin $BRANCH:$BRANCH
