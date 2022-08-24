@@ -49,25 +49,44 @@ const reportsDir = cfg.reportsDir;
 
 const prefix = cfg.testSuitsDir;
 
+const isPreview = commonParams.includes('--preview')
+
 const htmlStart = "<\!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Title</title></head><body>";
 const htmlEnd = "</body></html>";
 ;(async () => {
 
-  try {
-    let reportsDirStat = await fs.stat(path.join(cwd, reportsDir))
-    if (!reportsDirStat.isDirectory()) {
-      await runCommand(`mkdir ${reportsDir}`)
-    }
-  } catch (e) {
-    console.warn(`${reportsDir} is not a directory, I will create it then....`)
-    await runCommand(`mkdir ${reportsDir}`)
-  }
+  // try {
+  //   let reportsDirStat = await fs.stat(path.join(cwd, reportsDir))
+  //   if (!reportsDirStat.isDirectory()) {
+  //     await runCommand(`mkdir ${reportsDir}`)
+  //   }
+  // } catch (e) {
+  //   console.warn(`${reportsDir} is not a directory, I will create it then....`)
+  //   await runCommand(`mkdir ${reportsDir}`)
+  // }
 
+  if (cfg.plugins) {
+    if (Array.isArray(cfg.plugins)) {
+      cfg.plugins.forEach(item => {
+        if (item.isServer) {
+          if (commonParams.includes('--report') || cfg.devServer) {
+            item.apply && item.apply(cfg.devServer)
+          }
+        } else {
+          item.apply && item.apply()
+        }
+      })
+    } else {
+      console.log('参数 plugins 必须是数组')
+    }
+  }
 
   let i = 0;
   let tmpReportMap = [];
-  while (i < mp.length) {
-    let f = `${prefix}${mp[i]}.spec.ts`;
+  let fileType = cfg.useTS ? 'ts' : 'js'
+  while (i < mp.length && !isPreview) {
+    // let f = `${prefix}${mp[i]}.spec.${fileType}`;
+    let f = path.join(prefix, `${mp[i]}.spec.${fileType}`);
     try {
       let stat = await fs.stat(path.join(cwd, f));
       if (!stat.isFile()) {
@@ -78,28 +97,42 @@ const htmlEnd = "</body></html>";
       console.error(`${f} 不是个文件`)
       return process.exit(8)
     }
-    await runCommand('npx', ['jest', f, 'detectOpenHandles','forceExit', ...jestParams]);
-    let reportFile = `${reportsDir}/${mp[i]}_jest_html_reporters.html`;
-    tmpReportMap.push(reportFile);
-    await runCommand(`mv jest_html_reporters.html ${reportFile}`);
+    try {
+      await runCommand("npx", [
+        "jest",
+        f,
+        "detectOpenHandles",
+        "forceExit",
+        ...jestParams,
+      ]);
+    } catch (error) {
+      console.log(line);
+      console.error(`jest ${f} error ${error}`);
+      console.log(line);
+    }
+    // let reportFile = `${reportsDir}/${mp[i]}_jest_html_reporters.html`;
+    // tmpReportMap.push(reportFile);
+    // await runCommand(`mv jest_html_reporters.html ${reportFile}`);
     i++
   }
-  let contents = tmpReportMap.map((f, i) => `<div><a href="./${mp[i]}_jest_html_reporters.html">${f}</a></div>`);
-  await runCommand(`echo "${htmlStart + contents.join('') + htmlEnd}" > ${reportsDir}/E2E-TEST-REPORT.html`);
-  await runCommand('rm -rf jest_html_reporters.html');
-  await runCommand(`rm -rf ${reportsDir}/jest-html-reporters-attach`);
-  await runCommand(`mv jest-html-reporters-attach ${reportsDir}`);
-  const end = new Date();
-  
-  let spending = Math.floor((end - start) / 1000);
+  // let contents = tmpReportMap.map((f, i) => `<div><a href="./${mp[i]}_jest_html_reporters.html">${f}</a></div>`);
+  // await runCommand(`echo "${htmlStart + contents.join('') + htmlEnd}" > ${reportsDir}/E2E-TEST-REPORT.html`);
+  // await runCommand('rm -rf jest_html_reporters.html');
+  // await runCommand(`rm -rf ${reportsDir}/jest-html-reporters-attach`);
+  // await runCommand(`mv jest-html-reporters-attach ${reportsDir}`);
+  // const end = new Date();
+  cfg.plugins.forEach(plugin => {
+    plugin.done && plugin.done()
+  })
+  // let spending = Math.floor((end - start) / 1000);
 
-  if (cfg.record) {
-    await runCommand(`echo "${line}" >> e2e-record.txt`);
-    await runCommand(`echo "start: ${start.toString()}" >> e2e-record.txt`);
-    await runCommand(`echo "end: ${end.toString()}" >> e2e-record.txt`);
-    await runCommand(`echo "spending: ${spending}s" >> e2e-record.txt`);
-  }
-  console.log(line);
-  console.log(`spending:  ${spending}s`);
-  console.log(line);
+  // if (cfg.record) {
+  //   await runCommand(`echo "${line}" >> e2e-record.txt`);
+  //   await runCommand(`echo "start: ${start.toString()}" >> e2e-record.txt`);
+  //   await runCommand(`echo "end: ${end.toString()}" >> e2e-record.txt`);
+  //   await runCommand(`echo "spending: ${spending}s" >> e2e-record.txt`);
+  // }
+  // console.log(line);
+  // console.log(`spending:  ${spending}s`);
+  // console.log(line);
 })();
