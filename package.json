@@ -1,6 +1,6 @@
 {
   "name": "@mpxjs/e2e-scripts",
-  "version": "0.0.10-beta.2",
+  "version": "0.0.10-beta.3",
   "description": "miniprogram-e2e-scripts",
   "main": "index.js",
   "bin": {
