@@ -124,9 +124,11 @@ const htmlEnd = "</body></html>";
   // await runCommand(`rm -rf ${reportsDir}/jest-html-reporters-attach`);
   // await runCommand(`mv jest-html-reporters-attach ${reportsDir}`);
   // const end = new Date();
-  cfg.plugins.forEach(plugin => {
-    plugin.done && plugin.done()
-  })
+  if (cfg.plugins) {
+    cfg.plugins.forEach(plugin => {
+      plugin.done && plugin.done()
+    })
+  }
   // let spending = Math.floor((end - start) / 1000);
 
   // if (cfg.record) {
