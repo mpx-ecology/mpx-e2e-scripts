@@ -72,6 +72,8 @@ const htmlEnd = "</body></html>";
           if (commonParams.includes('--report') || cfg.devServer) {
             if (isPreview) {
               cfg.devServer = Object.assign({ preview: true }, cfg.devServer)
+            } else {
+              cfg.path = cfg.path || '/#/home'
             }
             item.apply && item.apply(cfg.devServer)
           }
