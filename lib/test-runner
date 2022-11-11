@@ -73,7 +73,7 @@ const htmlEnd = "</body></html>";
             if (isPreview) {
               cfg.devServer = Object.assign({ preview: true }, cfg.devServer)
             } else {
-              cfg.path = cfg.path || '/#/home'
+              cfg.devServer = Object.assign({ path: '/#/overview' }, cfg.devServer)
             }
             item.apply && item.apply(cfg.devServer)
           }
